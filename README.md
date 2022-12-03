@@ -1,8 +1,12 @@
 # GUC CMS Todoist
 The first time you run the script it will store links for all contents uploaded to the CMS, and then whenever you rerun the script it will search for any newly uploaded items and list them and also add them as tasks on Todoist.
 
-# Usage
+# Installation
+    git clone https://github.com/mathewhany/guc-cms-todoist.git
+    cd guc-cms-todoist
+    pip install -r requirements.txt
 
+# Usage
     python main.py
 
 __Note:__
