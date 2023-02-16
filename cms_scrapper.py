@@ -61,13 +61,13 @@ class CourseItem:
 class Course:
     material: dict[str, CourseItem]
 
-    def __init__(self, code, title, id, season, material):
+    def __init__(self, code, title, id, season, material, alias = None):
         self.code = code
         self.title = title
         self.id = id
         self.season = season
         self.material = material
-
+        self.alias = alias or code
 
 class CmsScrapper:
     def __init__(self, username, password):
