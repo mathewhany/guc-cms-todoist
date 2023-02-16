@@ -18,10 +18,10 @@ def initialize():
         config = ask_for_credentials()
         save_config(config)
 
-    if not has_saved_courses():
-        config = load_config()
+    # if not has_saved_courses():
+    #     config = load_config()
 
-        scrapper = CmsScrapper(config.guc_username, config.guc_password)
-        courses = scrapper.get_courses()
+    #     scrapper = CmsScrapper(config.guc_username, config.guc_password)
+    #     courses = scrapper.get_courses()
 
-        save_courses(courses)
+    #     save_courses(courses)

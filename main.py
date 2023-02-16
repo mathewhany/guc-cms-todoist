@@ -17,7 +17,7 @@ def main():
 
     for course_id, course in new_courses_data.items():
         for item_link, item in course.material.items():
-            if item_link not in old_courses_data[course_id].material:
+            if not old_courses_data or item_link not in old_courses_data[course_id].material:
                 todoist.add_task_for_course_item(course, item)
                 print(f'{course.code} | {item.title} | {item.full_link}')
 
