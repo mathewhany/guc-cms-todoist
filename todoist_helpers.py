@@ -62,8 +62,8 @@ class TodoistHelper:
 
     def add_task_for_course_item(self, course: Course, item: CourseItem):
         self.todoist.add_task(
-            content=course.alias + ' ' + item.title,
+            content=course.alias + ' | ' + item.title,
             project_id=self.project_id,
-            labels=[course.code],
+            labels=[course.alias],
             description=item.full_link
         )
