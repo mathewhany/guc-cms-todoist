@@ -9,7 +9,10 @@ First make sure you have Python 3.11 installed on your PC and that you included 
     pip install -r requirements.txt
 
 # Usage
-Just run the `cms-notify.bat` file. Or even better, just create a desktop shortcut for it, and whenever you want to check any changes to the CMS, just open that desktop shortcut. 
+## Windows
+Just run the `cms-notify.bat` file. Or even better, just create a desktop shortcut for it, and whenever you want to check any changes to the CMS, just open that desktop shortcut.
+## Mac / Linux
+    python main.py
 
 # Resetting password
 If you changed the password of your GUC account, you would have to delete `config.pkl` and run the script again. It will ask you for your password again.

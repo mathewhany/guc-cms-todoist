@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 from todoist_api_python.api import TodoistAPI
 from cms_scrapper import CourseItem, Course
+from config import Config
 
 TODOIST_CLIENT_ID = '95f69e7339ad43a1a6217574f45115c5'
 TODOIST_CLIENT_SECRET = '8043a99ef29746e4aa482bdb666cc738'
@@ -56,14 +57,16 @@ def create_uni_project(token):
 
 
 class TodoistHelper:
-    def __init__(self, token, project_id):
-        self.todoist = TodoistAPI(token)
-        self.project_id = project_id
+    def __init__(self, config: Config):
+        self.todoist = TodoistAPI(config.todoist_token)
+        self.config = config
 
     def add_task_for_course_item(self, course: Course, item: CourseItem):
+        course_alias = self.config.course_aliases[course.id]
+
         self.todoist.add_task(
-            content=course.alias + ' | ' + item.title,
-            project_id=self.project_id,
-            labels=[course.alias],
+            content=course_alias + ' | ' + item.title,
+            project_id=self.config.todoist_project_id,
+            labels=[course_alias],
             description=item.full_link
         )

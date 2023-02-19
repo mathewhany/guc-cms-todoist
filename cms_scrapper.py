@@ -5,6 +5,7 @@ import pickle
 import os
 from enum import Enum
 from requests_ntlm import HttpNtlmAuth
+from config import Config
 
 CMS_BASE_URL = 'https://cms.guc.edu.eg'
 COURSES_TABLE_ID = '#ContentPlaceHolderright_ContentPlaceHoldercontent_GridViewcourses'
@@ -61,21 +62,19 @@ class CourseItem:
 class Course:
     material: dict[str, CourseItem]
 
-    def __init__(self, code, title, id, season, material, alias = None):
+    def __init__(self, code, title, id, season, material):
         self.code = code
         self.title = title
         self.id = id
         self.season = season
         self.material = material
-        self.alias = alias or code
 
 class CmsScrapper:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self, config):
+        self.config = config
 
     def scrap_cms_page(self, uri):
-        req = requests.get(CMS_BASE_URL + uri, auth=HttpNtlmAuth(self.username, self.password))
+        req = requests.get(CMS_BASE_URL + uri, auth=HttpNtlmAuth(self.config.guc_username, self.config.guc_password))
         return bs4.BeautifulSoup(req.content, 'html.parser')
 
     def get_courses(self):

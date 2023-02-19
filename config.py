@@ -10,6 +10,7 @@ class Config:
         self.guc_password = guc_password
         self.todoist_token = todoist_token
         self.todoist_project_id = todoist_project_id
+        self.course_aliases = {}
 
 
 def save_config(config: Config):
