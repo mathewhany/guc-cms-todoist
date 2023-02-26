@@ -1,4 +1,4 @@
-from todoist_helpers import get_todoist_token, get_todoist_auth_code, create_uni_project
+from todoist_helpers import TodoistHelper, get_todoist_token, get_todoist_auth_code, create_uni_project
 from cms_scrapper import CmsScrapper, save_courses, has_saved_courses
 from config import Config, is_configured, save_config, load_config
 
@@ -37,6 +37,9 @@ def discover_courses():
 
     if not found_new_courses:
         print("No new courses discovered.")
+    else:
+        todoist = TodoistHelper(config)
+        config.todoist_courses_sections.update(todoist.create_courses_sections())
 
     save_config(config)
 

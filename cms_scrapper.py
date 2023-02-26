@@ -1,7 +1,7 @@
 import re
 import bs4
+import jsonpickle
 import requests
-import pickle
 import os
 from enum import Enum
 from requests_ntlm import HttpNtlmAuth
@@ -10,46 +10,74 @@ from config import Config
 CMS_BASE_URL = 'https://cms.guc.edu.eg'
 COURSES_TABLE_ID = '#ContentPlaceHolderright_ContentPlaceHoldercontent_GridViewcourses'
 
-COURSES_DATA_FILE = 'courses.pkl'
+COURSES_DATA_FILE = 'courses.json'
 
-
-def normalize_item_title(title):
-    number_matches = re.compile(r'\d+\W*-\D+(\d+|\d+.\d+)\D*\(.*\)').findall(title)
-
-    if len(number_matches) != 1:
-        return title
-
-    num = number_matches[0]
-    item_type = get_item_type(title)
-
-    if item_type == ItemType.LECTURE:
-        return 'Lecture ' + num
-    elif item_type == ItemType.SOLUTION:
-        return f'Assignment {num} Solutions'
-    elif item_type == ItemType.ASSIGNMENT:
-        return 'Assignment ' + num
-    else:
-        return title
-
-
-def get_item_type(item_title):
-    if re.search('lecture', item_title, re.IGNORECASE):
-        return ItemType.LECTURE
-
-    if re.search('assignment', item_title, re.IGNORECASE):
-        return ItemType.ASSIGNMENT
-
-    if re.search('solution', item_title, re.IGNORECASE):
-        return ItemType.SOLUTION
-
-    return ItemType.OTHERS
-
-
-class ItemType(Enum):
+class ItemType(str, Enum):
     LECTURE = 'Lecture'
     ASSIGNMENT = 'PA'
-    SOLUTION = 'Solutions'
+    PA_SOLUTION = 'PA Solutions'
+    LAB_ASSINMENT = 'Lab Assignment'
+    LAB_MANUAL = 'Lab Manual'
+    LAB_SOLUTION = 'Lab Solution'
     OTHERS = 'Others'
+
+def normalize_item_title(title: str, original_type: str):
+    type = normalize_item_type(title, original_type)
+    title = re.sub(r'^\d+\W*-', '', title).strip()
+
+    if type == ItemType.OTHERS:
+        return f'{title} {original_type}'
+
+    numbers_at_end = re.findall(r'(\d+)\W*$', title)
+
+    if not numbers_at_end:
+        return title
+    
+    item_number = numbers_at_end[0]
+
+    if type == ItemType.LECTURE:
+        return f'Lecture {item_number}'
+
+    if type == ItemType.ASSIGNMENT:
+        return f'PA {item_number}'
+
+    if type == ItemType.PA_SOLUTION:
+        return f'PA {item_number} (Solutions)'
+
+    if type == ItemType.LAB_ASSINMENT:
+        return f'Lab Assignment {item_number}'
+
+    if type == ItemType.LAB_MANUAL:
+        return f'Lab Manual {item_number}'
+
+    if type == ItemType.LAB_SOLUTION:
+        return f'Lab Assignment {item_number} (Solutions)'
+
+def normalize_item_type(item_title: str, item_type: str) -> ItemType:
+    combined = item_title + item_type
+    has_lecture = re.search('lecture', combined, re.IGNORECASE)
+    has_lab = re.search('lab', combined, re.IGNORECASE)
+    has_assignment = re.search('assignment', combined, re.IGNORECASE)
+    has_solution = re.search('solution', combined, re.IGNORECASE)
+    
+    if has_lecture:
+        return ItemType.LECTURE
+
+    if has_lab:
+        if has_solution:
+            return ItemType.LAB_SOLUTION
+        elif has_assignment:
+            return ItemType.LAB_ASSINMENT
+        else:
+            return ItemType.LAB_MANUAL
+
+    if has_assignment:
+        if has_solution:
+            return ItemType.PA_SOLUTION
+        else:
+            return ItemType.ASSIGNMENT
+
+    return ItemType.OTHERS
 
 
 class CourseItem:
@@ -70,6 +98,8 @@ class Course:
         self.material = material
 
 class CmsScrapper:
+    cached_courses: dict[str, Course] = {}
+
     def __init__(self, config):
         self.config = config
 
@@ -77,7 +107,11 @@ class CmsScrapper:
         req = requests.get(CMS_BASE_URL + uri, auth=HttpNtlmAuth(self.config.guc_username, self.config.guc_password))
         return bs4.BeautifulSoup(req.content, 'html.parser')
 
-    def get_courses(self):
+    def get_courses(self) -> dict[str, Course]:
+        if CmsScrapper.cached_courses:
+            print("Using cached courses...")
+            return CmsScrapper.cached_courses
+
         soup = self.scrap_cms_page('/')
         courses_table = soup.select_one(COURSES_TABLE_ID)
 
@@ -93,6 +127,8 @@ class CmsScrapper:
 
             courses[course_id] = Course(course_code, course_title, course_id, season, material)
 
+        CmsScrapper.cached_courses = courses
+
         return courses
 
     def get_course_material(self, course_id, season):
@@ -100,26 +136,29 @@ class CmsScrapper:
         items = {}
 
         for link in soup.select('#download'):
-            item_original_title = link.find_parent(attrs={'class': 'card-body'}).find('div').get_text(strip=True)
-            item_normalized_title = normalize_item_title(item_original_title)
+            item_title_tag = link.find_parent(attrs={'class': 'card-body'}).find('div').find('strong')
+            item_extracted_title = item_title_tag.get_text(strip=True)
+            item_extracted_type = item_title_tag.next_sibling.get_text(strip=True)
             item_full_link = CMS_BASE_URL + link['href']
-            item_type = get_item_type(item_original_title)
-            items[item_full_link] = CourseItem(item_normalized_title, item_full_link, item_type)
+            item_type = normalize_item_type(item_extracted_title, item_extracted_type)
+            item_title = normalize_item_title(item_extracted_title, item_extracted_type)
+            
+            items[item_full_link] = CourseItem(item_title, item_full_link, item_type)
 
         return items
 
 
 def save_courses(courses: list[Course]):
-    with open(COURSES_DATA_FILE, 'wb+') as f:
-        pickle.dump(courses, f)
+    with open(COURSES_DATA_FILE, 'w+') as f:
+        f.write(jsonpickle.encode(courses))
 
 
 def load_courses() -> dict[str, Course]:
     if not os.path.isfile(COURSES_DATA_FILE):
         return {}
 
-    with open(COURSES_DATA_FILE, 'rb') as f:
-        return pickle.load(f)
+    with open(COURSES_DATA_FILE, 'r') as f:
+        return jsonpickle.decode(f.read())
 
 def has_saved_courses():
     return os.path.isfile(COURSES_DATA_FILE)

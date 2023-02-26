@@ -1,4 +1,4 @@
-config.pkl
-courses.pkl
+config.json
+courses.json
 .idea/
 __pycache__/

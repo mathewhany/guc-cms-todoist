@@ -53,20 +53,33 @@ def get_todoist_token(auth_code):
 def create_uni_project(token):
     todoist = TodoistAPI(token)
     project = todoist.add_project('Uni')
-    return project.id
 
+    return project.id
 
 class TodoistHelper:
     def __init__(self, config: Config):
         self.todoist = TodoistAPI(config.todoist_token)
         self.config = config
 
+
     def add_task_for_course_item(self, course: Course, item: CourseItem):
         course_alias = self.config.course_aliases[course.id]
+        course_section = self.config.todoist_courses_sections[course.id]
 
         self.todoist.add_task(
             content=course_alias + ' | ' + item.title,
             project_id=self.config.todoist_project_id,
-            labels=[course_alias],
+            labels=[item.type],
+            section_id=course_section,
             description=item.full_link
         )
+
+    def create_courses_sections(self):
+        created_sections = {}
+
+        for course_id, course_alias in self.config.course_aliases.items():
+            if course_id not in self.config.todoist_courses_sections:
+                section = self.todoist.add_section(project_id=self.config.todoist_project_id, name=course_alias)
+                created_sections[course_id] = section.id
+                
+        return created_sections

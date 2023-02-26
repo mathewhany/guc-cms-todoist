@@ -1,7 +1,7 @@
-import pickle
 import os.path
+import jsonpickle
 
-CONFIG_FILE = 'config.pkl'
+CONFIG_FILE = 'config.json'
 
 
 class Config:
@@ -11,16 +11,20 @@ class Config:
         self.todoist_token = todoist_token
         self.todoist_project_id = todoist_project_id
         self.course_aliases = {}
+        self.todoist_courses_sections = {}
 
 
 def save_config(config: Config):
-    with open(CONFIG_FILE, 'wb+') as f:
-        pickle.dump(config, f)
+    with open(CONFIG_FILE, 'w+') as f:
+        f.write(jsonpickle.encode(config))
 
 
-def load_config():
-    with open(CONFIG_FILE, 'rb') as f:
-        return pickle.load(f)
+def load_config() -> Config:
+    if not os.path.isfile(CONFIG_FILE):
+        return Config()
+
+    with open(CONFIG_FILE, 'r') as f:
+        return jsonpickle.decode(f.read())
 
 
 def is_configured():
