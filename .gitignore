@@ -2,3 +2,6 @@ config.json
 courses.json
 .idea/
 __pycache__/
+build
+.DS_Store
+*.spec
