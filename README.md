@@ -1,7 +1,6 @@
 # GUC CMS Todoist
 The first time you run the script it will store links for all contents uploaded to the CMS, and then whenever you rerun the script it will search for any newly uploaded items and list them and also add them as tasks on Todoist.
 
-TODO: Add images and video
 
 # Changelog
 ## 2.0
@@ -19,11 +18,17 @@ TODO: Add images and video
 - Added course name aliasing.
   - Now you can give an alias for the courses so for example instead naming the course `Computer System Architecture` or `CSEN601`, the script now asks you if you want to alias it to a more readable name like `CA`. 
 
-# Installation
-TODO: Add installation guide
+# Download & Installation
+## Windows
+1. [Download](https://github.com/mathewhany/guc-cms-todoist/suites/11817070514/artifacts/617041594)
+2. Extract
+3. Open `GUC-CMS-Todoist.exe`
 
-# Usage
-TODO: Add usage guide
+## macOS
+1. [Download](https://github.com/mathewhany/guc-cms-todoist/suites/11817070514/artifacts/617041592)
+2. Extract
+3. Right click on `GUC-CMS-Todoist` and choose open.
+4. A dialog will appear telling you that the app is from an untrusted developer (CUZ Apple LOL), click Open to allow macOS to trust the app (later you can just click on the app normally and it will open)
 
 # Resetting password
 If you changed the password of your GUC account, you would have to delete `config.json` and run the script again. It will ask you for your password again.
