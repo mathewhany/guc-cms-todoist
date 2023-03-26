@@ -13,19 +13,30 @@ def main():
     todoist = TodoistHelper(config)
 
     old_courses_data = load_courses()
-    
+
     print("Checking for new course material...")
     new_courses_data = scrapper.get_courses()
-    found_new_material = False
+    found_updates = False
 
-    for course_id, course in new_courses_data.items():            
+    for course_id, course in new_courses_data.items():
+        old_announcement = old_courses_data[
+            course_id].announcements if course_id in old_courses_data else ''
+        new_announcement = course.announcements
+
+        if new_announcement and old_announcement != new_announcement:
+            found_updates = True
+            print(f'{config.course_aliases[course_id]} | A new announcement added. Check it on Todoist')
+            todoist.add_course_announcement(
+                course_id, new_announcement.replace(old_announcement, ''))
+
         for item_link, item in course.material.items():
             if course_id not in old_courses_data or item_link not in old_courses_data[course_id].material:
-                found_new_material = True
+                found_updates = True
                 todoist.add_task_for_course_item(course, item)
-                print(f'{config.course_aliases[course_id]} | {item.title} | {item.full_link}')
-    
-    if not found_new_material:
+                print(
+                    f'{config.course_aliases[course_id]} | {item.title} | {item.full_link}')
+
+    if not found_updates:
         print("No new material found. Everything has already been added to your Todoist account.")
 
     save_courses(new_courses_data)

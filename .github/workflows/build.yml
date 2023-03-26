@@ -1,0 +1,28 @@
+name: PyInstaller Builder
+
+on:
+  push
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest', 'macos-latest']
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+
+    - run: pip install -r requirements.txt pyinstaller
+    - run: pyinstaller --onefile --name GUC-CMS-Todoist main.py
+    
+    - run: tar -cvf guc-cms-todoist-${{ matrix.os }}.tar -C dist .
+    
+    - uses: actions/upload-artifact@v3
+      with:
+        name: guc-cms-todoist-${{ matrix.os }}
+        path: guc-cms-todoist-${{ matrix.os }}.tar

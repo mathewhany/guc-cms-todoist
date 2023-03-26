@@ -1,3 +1,4 @@
+from threading import Thread
 import webbrowser
 import requests
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -20,11 +21,13 @@ def get_todoist_auth_code():
 
         def do_GET(self):
             AuthorizeServer.token_retrieved = True
-            AuthorizeServer.auth_code = parse_qs(urlparse(self.path).query)['code'][0]
+            AuthorizeServer.auth_code = parse_qs(
+                urlparse(self.path).query)['code'][0]
             self.send_response(200)
-            self.send_header('Content-Type', 'text/html');
+            self.send_header('Content-Type', 'text/html')
             self.end_headers()
-            self.wfile.write(bytes('Authorization completed. You can close this.', 'utf-8'))
+            self.wfile.write(
+                bytes('Authorization completed. You can close this.', 'utf-8'))
 
         def log_message(self, format, *args):
             return
@@ -56,30 +59,46 @@ def create_uni_project(token):
 
     return project.id
 
+
 class TodoistHelper:
     def __init__(self, config: Config):
         self.todoist = TodoistAPI(config.todoist_token)
         self.config = config
 
-
     def add_task_for_course_item(self, course: Course, item: CourseItem):
         course_alias = self.config.course_aliases[course.id]
         course_section = self.config.todoist_courses_sections[course.id]
 
-        self.todoist.add_task(
-            content=course_alias + ' | ' + item.title,
-            project_id=self.config.todoist_project_id,
-            labels=[item.type],
-            section_id=course_section,
-            description=item.full_link
-        )
+        def addTask():
+            self.todoist.add_task(
+                content=f'__{course_alias}__ | {item.title}',
+                project_id=self.config.todoist_project_id,
+                labels=[item.type],
+                section_id=course_section,
+                description=item.full_link
+            )
+
+        Thread(target=addTask).start()
 
     def create_courses_sections(self):
         created_sections = {}
 
         for course_id, course_alias in self.config.course_aliases.items():
             if course_id not in self.config.todoist_courses_sections:
-                section = self.todoist.add_section(project_id=self.config.todoist_project_id, name=course_alias)
+                section = self.todoist.add_section(
+                    project_id=self.config.todoist_project_id, name=course_alias)
                 created_sections[course_id] = section.id
-                
+
         return created_sections
+
+    def add_course_announcement(self, course_id, announcement):
+        course_alias = self.config.course_aliases[course_id]
+        course_section = self.config.todoist_courses_sections[course_id]
+
+        self.todoist.add_task(
+            content=f'__{course_alias}__ | Announcement',
+            description=announcement,
+            project_id=self.config.todoist_project_id,
+            section_id=course_section,
+            labels=['announcement']
+        )
