@@ -20,7 +20,10 @@ def ask_for_credentials():
     print("CmsNotifier will create a new project called 'Uni' in your Todoist account to store the course material notifications.")
     todoist_project_id = create_uni_project(todoist_token)
 
-    return Config(guc_username, guc_password, todoist_token, todoist_project_id)
+    print("ChatGPT can be used to help you plan for your quizzes and studies. ")
+    openai_api_key = input("If you would like to enable this feature add your ChatGPT API Key, or just press enter to continue: ")
+
+    return Config(guc_username, guc_password, todoist_token, todoist_project_id, openai_api_key)
 
 def discover_courses():    
     print("Discovering new courses...")

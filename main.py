@@ -1,3 +1,4 @@
+from chatgpt_helper import ChatGPTHelper
 from initializer import initialize
 from config import load_config
 from cms_scrapper import CmsScrapper, load_courses, save_courses, Course
@@ -11,6 +12,7 @@ def main():
 
     scrapper = CmsScrapper(config)
     todoist = TodoistHelper(config)
+    chatgpt = ChatGPTHelper(config)
 
     old_courses_data = load_courses()
 
@@ -25,9 +27,16 @@ def main():
 
         if new_announcement and old_announcement != new_announcement:
             found_updates = True
-            print(f'{config.course_aliases[course_id]} | A new announcement added. Check it on Todoist')
-            todoist.add_course_announcement(
-                course_id, new_announcement.replace(old_announcement, ''))
+            announcement = new_announcement.replace(old_announcement, '')
+            if announcement.strip() != '':
+                announcement_title = chatgpt.generate_title_for_announcement(
+                    announcement)
+                announcement_content = chatgpt.get_announcement_content(
+                    announcement, course)
+                print(
+                    f'{config.course_aliases[course_id]} | {announcement_title}')
+                todoist.add_course_announcement(
+                    course_id, announcement_title, announcement_content)
 
         for item_link, item in course.material.items():
             if course_id not in old_courses_data or item_link not in old_courses_data[course_id].material:

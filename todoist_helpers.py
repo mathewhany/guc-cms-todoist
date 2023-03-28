@@ -91,12 +91,12 @@ class TodoistHelper:
 
         return created_sections
 
-    def add_course_announcement(self, course_id, announcement):
+    def add_course_announcement(self, course_id, announcement_title, announcement):
         course_alias = self.config.course_aliases[course_id]
         course_section = self.config.todoist_courses_sections[course_id]
 
         self.todoist.add_task(
-            content=f'__{course_alias}__ | Announcement',
+            content=f'__{course_alias}__ | {announcement_title}',
             description=announcement,
             project_id=self.config.todoist_project_id,
             section_id=course_section,

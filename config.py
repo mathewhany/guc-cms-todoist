@@ -5,13 +5,14 @@ CONFIG_FILE = 'config.json'
 
 
 class Config:
-    def __init__(self, guc_username, guc_password, todoist_token, todoist_project_id):
+    def __init__(self, guc_username, guc_password, todoist_token, todoist_project_id, openai_api_key = ''):
         self.guc_username = guc_username
         self.guc_password = guc_password
         self.todoist_token = todoist_token
         self.todoist_project_id = todoist_project_id
         self.course_aliases = {}
         self.todoist_courses_sections = {}
+        self.openai_api_key = openai_api_key
 
 
 def save_config(config: Config):
