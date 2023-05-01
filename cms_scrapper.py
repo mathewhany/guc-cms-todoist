@@ -211,8 +211,7 @@ class CmsScrapper:
             return "".join(_get_text(tag))
 
         soup = self.scrap_course_page(course_id, season)
-        announcements_container = soup.find("h5", text="Course Announcements:").parent.select_one(
-            '#ContentPlaceHolderright_ContentPlaceHoldercontent_desc')
+        announcements_container = soup.select_one('#ContentPlaceHolderright_ContentPlaceHoldercontent_desc')
         announcements = get_text(announcements_container)
         return announcements
 
